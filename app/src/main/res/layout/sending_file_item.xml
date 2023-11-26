@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?colorOnBackground"
+    android:layout_margin="5dp"
+    android:id="@+id/sending_item_root">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/sending_thumbnail"
+        android:padding="10dp"
+        android:src="@mipmap/ic_launcher"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@+id/sending_status"
+        android:layout_toEndOf="@+id/sending_thumbnail"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="15dp"
+        android:id="@+id/linLayRoot">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sending_file_name"
+            android:text="Sending File Name"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="?colorSecondaryVariant" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/sending_thumbnail"
+        android:layout_below="@+id/linLayRoot"
+        android:layout_marginStart="15dp"
+        android:id="@+id/innerLay">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/current_sending_file_size"
+            android:text="200MB"
+            android:textColor="?colorSecondaryVariant" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/forward_slash"
+            android:text="/"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:textSize="18sp"
+            android:gravity="center_vertical"
+            android:layout_marginTop="1dp"
+            android:textColor="?colorSecondaryVariant" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/total_sending_file_size"
+            android:text="200MB"
+            android:textColor="?colorSecondaryVariant" />
+    </LinearLayout>
+    <ProgressBar
+        android:id="@+id/progressSentFile"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:progressDrawable="@drawable/progress_bar_sharing_file"
+        android:layout_width="match_parent"
+        android:layout_toEndOf="@id/sending_thumbnail"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="5dp"
+        android:layout_height="10dp"
+        android:layout_below="@id/innerLay"/>
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/sending_status"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:visibility="gone"
+        android:src="@drawable/ic_check_circle"/>
+</RelativeLayout>

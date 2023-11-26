@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/lang_background"
+    android:id="@+id/language_item">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/language_name"
+        android:text="@string/hindi"
+        android:textColor="#fff"
+        android:textSize="20sp"
+        android:padding="25dp"
+        android:layout_alignParentStart="true"
+        android:textStyle="bold"/>
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/radio_button"
+        android:src="@drawable/ic_radio_button_unchecked"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="25dp"
+        android:layout_centerVertical="true"/>
+</RelativeLayout>

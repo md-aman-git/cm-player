@@ -1,0 +1,32 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="DarkTheme" parent="Base.AppTheme.Dark" />
+    <style name="Base.AppTheme.Dark" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkDark</item>
+        <item name="colorAccent">@color/colorTabDark</item>
+        <item name="colorSecondary">@color/colorTabLight</item>
+        <item name="colorSecondaryVariant">@color/colorTextOfButtonDark</item>
+        <item name="colorOnBackground">@color/colorPrimaryDark</item>
+        <item name="colorOnPrimary">@color/colorDark</item>
+    </style>
+
+    <style name="LightTheme" parent="Base.AppTheme.Light" />
+    <style name="Base.AppTheme.Light" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimaryLight</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkLight</item>
+        <item name="colorAccent">@color/colorTextOfButtonDark</item>
+        <item name="colorSecondary">@color/colorLight</item>
+        <item name="colorSecondaryVariant">@color/colorTextOfButtonLight</item>
+        <item name="colorOnBackground">@color/colorDark</item>
+        <item name="colorOnPrimary">#555555</item>
+    </style>
+
+    <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorPrimary">@color/colorTabDark</item>
+    </style>
+
+</resources>

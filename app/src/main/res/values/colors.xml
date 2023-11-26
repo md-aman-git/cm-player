@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimaryDark">#1F2529</color>
+    <color name="colorPrimaryDarkDark">#212121</color>
+    <color name="colorDark">#FFFFFF</color>
+    <color name="colorTabDark">#CB3227</color>
+    <color name="colorTextOfButtonDark">#ffffff</color>
+
+    <!--    for light theme-->
+
+    <color name="colorPrimaryLight">#3F51B5</color>
+    <color name="colorPrimaryDarkLight">#303F9F</color>
+    <color name="colorLight">#000000</color>
+    <color name="colorTabLight">#009688</color>
+    <color name="colorTextOfButtonLight">#000000</color>
+</resources>

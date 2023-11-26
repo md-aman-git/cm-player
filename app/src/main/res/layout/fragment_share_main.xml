@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/shareRootLayout"
+    android:background="?colorOnBackground"
+    android:gravity="center"
+    tools:context=".fragments.ShareMainFragment">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/linLay"
+        android:orientation="vertical"
+        android:gravity="center">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sendFiles"
+            android:layout_margin="10dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"
+            android:textSize="18sp"
+            android:textColor="#fff"
+            android:background="@drawable/send_receive_background"
+            android:text="Send Files"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/receiveFiles"
+            android:layout_margin="10dp"
+            android:textSize="18sp"
+            android:textColor="#fff"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingLeft="38dp"
+            android:paddingRight="38dp"
+            android:background="@drawable/send_receive_background"
+            android:text="Receive Files"/>
+    </LinearLayout>
+
+</RelativeLayout>

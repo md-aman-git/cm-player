@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?colorOnBackground"
+    tools:context=".activities.SelectFilesActivity">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/selectFrameLayout"
+        android:layout_above="@+id/selectFilesNavMenu"
+        android:layout_alignParentTop="true"/>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/selectFilesNavMenu"
+        app:menu="@menu/file_select_nav_menu"
+        app:itemIconTint="@drawable/item_state_changer"
+        app:itemTextColor="@drawable/item_state_changer"
+        android:layout_alignParentBottom="true" />
+
+</RelativeLayout>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="Documents"
+        android:icon="@drawable/ic_baseline_folder"
+        app:showAsAction="ifRoom"
+        android:checked="true"
+        android:id="@+id/selectFolder"/>
+    <item
+        android:title="Videos"
+        android:icon="@drawable/ic_video_library"
+        app:showAsAction="ifRoom"
+        android:id="@+id/selectVideos"/>
+    <item
+        android:title="Musics"
+        android:icon="@drawable/ic_music_note"
+        app:showAsAction="ifRoom"
+        android:id="@+id/selectMusics"/>
+    <item
+        android:title="Apps"
+        android:icon="@drawable/ic_apps"
+        app:showAsAction="ifRoom"
+        android:id="@+id/selectApps"/>
+</menu>
