@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -43,10 +44,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void permission() {
-        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+        if (Build.VERSION.SDK_INT < 33 && ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+        }
+        else if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.READ_MEDIA_VIDEO}, REQUEST_PERMISSION);
         } else {
             videoFiles = getAllAudioFromDevice(MainActivity.this);
             //initViewPager();
@@ -68,8 +74,14 @@ public class MainActivity extends AppCompatActivity
                         .replace(R.id.mainFrameLayout, new FolderFragment()).commit();
                 navigationView.setOnNavigationItemSelectedListener(this);
             } else {
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+                if(Build.VERSION.SDK_INT < 33) {
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
+                }
+                else {
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_MEDIA_VIDEO}, REQUEST_PERMISSION);
+                }
             }
         }
     }

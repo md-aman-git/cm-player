@@ -1,5 +1,8 @@
 package com.aman.videoplayer.activities;
 
+import static com.aman.videoplayer.adapters.VideoAdapter.mFiles;
+import static com.aman.videoplayer.adapters.VideoFolderAdapter.mFilesOfFolder;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,10 +15,8 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -28,38 +29,29 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 
-import com.aman.videoplayer.modals.AudioLanguages;
+import androidx.annotation.OptIn;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.PlayerView;
+
 import com.aman.videoplayer.CustomDialogClass;
 import com.aman.videoplayer.GetSetLanguage;
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
 import com.aman.videoplayer.adapters.LanguageAudioAdapter;
+import com.aman.videoplayer.modals.AudioLanguages;
+import com.aman.videoplayer.modals.VideoFiles;
 import com.aman.videoplayer.utils.OrientationManager;
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import static com.aman.videoplayer.adapters.VideoAdapter.mFiles;
-import static com.aman.videoplayer.adapters.VideoFolderAdapter.mFilesOfFolder;
 
 public class PlayerActivity extends AppCompatActivity implements OrientationManager.OrientationListener {
 
@@ -69,7 +61,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
     ImageView btFullscreen, audioTrackBtn, lockUnlock,
             backArrow, audioImageUpDown, brightnessImageUpDown,
             subtitleBtn, lockedNow, nextBtn, previousBtn, btnResizeMode;
-    private SimpleExoPlayer simpleExoPlayer;
+    private ExoPlayer simpleExoPlayer;
     private boolean flag = false;
     private ArrayList<VideoFiles> myFiles = new ArrayList<>();
     private AudioManager audioManager;
@@ -92,6 +84,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
     private LanguageAudioAdapter languageAudioAdapter;
     private int MY_POSITION = 0;
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme();
@@ -107,7 +100,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         String sender = getIntent().getStringExtra("sender");
         if (sender != null && sender.equals("fromFolderFrag")) {
             myFiles = mFilesOfFolder;
-        } else if(sender != null && sender.equals("fromFileFrag")) {
+        } else if (sender != null && sender.equals("fromFileFrag")) {
             myFiles = mFiles;
         }
         position = getIntent().getIntExtra("position", 0);
@@ -166,13 +159,13 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             public void myLanguageListener(int position) {
                 audioLanguages.clear();
                 MY_POSITION = position;
-                for (int i = 0; i < simpleExoPlayer.getCurrentTrackGroups().length; i++) {
-                    String format = simpleExoPlayer.getCurrentTrackGroups()
-                            .get(i).getFormat(0).sampleMimeType;
-                    String lang = simpleExoPlayer.getCurrentTrackGroups()
-                            .get(i).getFormat(0).language;
-                    String id = simpleExoPlayer.getCurrentTrackGroups()
-                            .get(i).getFormat(0).id;
+                for (int i = 0; i < simpleExoPlayer.getCurrentTracks().getGroups().size(); i++) {
+                    String format = simpleExoPlayer.getCurrentTracks().getGroups()
+                            .get(i).getTrackFormat(0).sampleMimeType;
+                    String lang = simpleExoPlayer.getCurrentTracks().getGroups()
+                            .get(i).getTrackFormat(0).language;
+                    String id = simpleExoPlayer.getCurrentTracks().getGroups()
+                            .get(i).getTrackFormat(0).id;
                     if (format != null && format.contains("audio") && id != null && lang != null) {
                         AudioLanguages audio;
                         if (position == (i - 1)) {
@@ -195,14 +188,12 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             @Override
             public void changeAudio(int position) {
                 simpleExoPlayer.setPlayWhenReady(false);
-                DefaultTrackSelector.Parameters currentParameters = trackSelector.getParameters();
-                newParameters = currentParameters
+                simpleExoPlayer.setTrackSelectionParameters(simpleExoPlayer
+                        .getTrackSelectionParameters()
                         .buildUpon()
                         .setMaxVideoSizeSd()
                         .setPreferredAudioLanguage(audioLanguages.get(position).getAudioLanguage())
-                        .build();
-                // Set the new parameters.
-                trackSelector.setParameters(newParameters);
+                        .build());
                 simpleExoPlayer.setPlayWhenReady(true);
                 if (dialogClass != null) {
                     dialogClass.dismiss();
@@ -228,9 +219,8 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             playerView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() == MotionEvent.ACTION_UP)
-                    {
-                        if (playerView.isControllerVisible())
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        if (playerView.isControllerFullyVisible())
                             playerView.hideController();
                         else
                             playerView.showController();
@@ -249,7 +239,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             lockedNow.setVisibility(View.GONE);
             topLayout.setVisibility(View.VISIBLE);
             bottomLayout.setVisibility(View.VISIBLE);
-            if (!playerView.isControllerVisible())
+            if (!playerView.isControllerFullyVisible())
                 playerView.showController();
             gesturePlayerView();
         });
@@ -257,6 +247,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                 "This Feature In Next Update", Toast.LENGTH_SHORT).show());
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void createExoPlayer(int position) {
         //openAppMethodWork();
         setOrientationMethod();
@@ -266,23 +257,20 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         String path = myFiles.get(position).getPath();
         Log.e("Path", path + "");
         Uri uri = Uri.parse(Uri.encode(path));
-        simpleExoPlayer = new SimpleExoPlayer.Builder(this)
+        MediaItem mediaItem = new MediaItem.Builder().setUri(uri).build();
+        simpleExoPlayer = new ExoPlayer.Builder(this)
                 .setTrackSelector(trackSelector)
                 .build();
-        DataSource.Factory factory = new DefaultDataSourceFactory(this,
-                Util.getUserAgent(this, "CM Player"));
-        ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-        MediaSource mediaSource = new ProgressiveMediaSource
-                .Factory(factory, extractorsFactory).createMediaSource(uri);
         playerView.setPlayer(simpleExoPlayer);
         playerView.setKeepScreenOn(true);
-        simpleExoPlayer.prepare(mediaSource);
+        simpleExoPlayer.setMediaItem(mediaItem);
+        simpleExoPlayer.prepare();
         simpleExoPlayer.setPlayWhenReady(true);
         FullScreenCall();
-        simpleExoPlayer.addListener(new Player.EventListener() {
+        simpleExoPlayer.addListener(new Player.Listener() {
             @Override
-            public void onPlayerStateChanged(boolean playWhenReady,
-                                             int playbackState) {
+            public void onPlaybackStateChanged(int playbackState) {
+                Player.Listener.super.onPlaybackStateChanged(playbackState);
                 if (playbackState == Player.STATE_ENDED) {
                     nextBtnClicked();
                     if (seekDuration.getVisibility() == View.VISIBLE)
@@ -316,12 +304,12 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         });
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void gesturePlayerView() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSystemWritePermission()) {
                 handelSystemSettings();
-                if (!screenLocked)
-                {
+                if (!screenLocked) {
                     playerView.setOnTouchListener(new View.OnTouchListener() {
                         float y1 = 0, x1 = 0;
                         long positionInitial = 0, positionFinal = 0;
@@ -338,7 +326,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                             }
                             if (event.getAction() == MotionEvent.ACTION_UP) {
                                 if (count < 2) {
-                                    if (playerView.isControllerVisible()) {
+                                    if (playerView.isControllerFullyVisible()) {
                                         playerView.hideController();
                                         FullScreenCall();
                                         ViewGroup.MarginLayoutParams params =
@@ -394,8 +382,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                                         leftRight = false;
                                         once = false;
                                     }
-                                }
-                                else if (10 * Math.abs((y1 - y)) < 10 * Math.abs(x - x1)) {
+                                } else if (10 * Math.abs((y1 - y)) < 10 * Math.abs(x - x1)) {
                                     if (once) {
                                         upDown = false;
                                         leftRight = true;
@@ -524,8 +511,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             }
         } else {
             handelSystemSettings();
-            if (!screenLocked)
-            {
+            if (!screenLocked) {
                 playerView.setOnTouchListener(new View.OnTouchListener() {
                     float y1 = 0, x1 = 0;
                     long positionInitial = 0, positionFinal = 0;
@@ -542,7 +528,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                         }
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             if (count < 2) {
-                                if (playerView.isControllerVisible()) {
+                                if (playerView.isControllerFullyVisible()) {
                                     playerView.hideController();
                                     FullScreenCall();
                                     ViewGroup.MarginLayoutParams params =
@@ -598,8 +584,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                                     leftRight = false;
                                     once = false;
                                 }
-                            }
-                            else if (10 * Math.abs((y1 - y)) < 10 * Math.abs(x - x1)) {
+                            } else if (10 * Math.abs((y1 - y)) < 10 * Math.abs(x - x1)) {
                                 if (once) {
                                     upDown = false;
                                     leftRight = true;
@@ -723,6 +708,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         }
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void initialize() {
         btFullscreen = findViewById(R.id.bt_fullscreen);
         playerView = findViewById(R.id.exoplayer_movie_view);
@@ -753,8 +739,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         width = displayMetrics.widthPixels;
         cResolver = getContentResolver();
         window = getWindow();
-        TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
-        trackSelector = new DefaultTrackSelector(this, trackSelectionFactory);
+        trackSelector = new DefaultTrackSelector(this);
         // Build on the current parameters.
         DefaultTrackSelector.Parameters currentParameters =
                 trackSelector.getParameters();
@@ -834,11 +819,10 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             inputStream = new FileInputStream(myFiles.get(position).getPath());
             retriever.setDataSource(inputStream.getFD());
             rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
-
+            retriever.release();
         } catch (IOException | RuntimeException e) {
             e.printStackTrace();
         } finally {
-            retriever.release();
             if (inputStream != null) {
                 try {
                     inputStream.close();
@@ -1001,6 +985,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         String id = null;
         //myFiles = getAllAudioFromDevice(this, id);
     }
+
     public ArrayList<VideoFiles>
     getAllAudioFromDevice(final Context context, String pathFinder) {
 
@@ -1053,7 +1038,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
 
     @Override
     public void onOrientationChange(OrientationManager.ScreenOrientation screenOrientation) {
-        switch(screenOrientation){
+        switch (screenOrientation) {
             case PORTRAIT:
             case REVERSED_PORTRAIT:
                 break;

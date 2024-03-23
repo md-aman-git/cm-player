@@ -8,22 +8,20 @@
     android:gravity="center"
     tools:context=".activities.PlayerActivity">
 
-    <com.google.android.exoplayer2.ui.PlayerView
+    <androidx.media3.ui.PlayerView
         android:id="@+id/exoplayer_movie_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#000000"
         app:controller_layout_id="@layout/custom_controller"
-        app:fastforward_increment="10000"
         app:hide_on_touch="true"
-        app:player_layout_id="@layout/exo_simple_player_view"
+
         app:resize_mode="fit"
-        app:rewind_increment="10000"
         app:show_timeout="5000"
         app:shutter_background_color="#000000"
         app:use_controller="true">
 
-    </com.google.android.exoplayer2.ui.PlayerView>
+    </androidx.media3.ui.PlayerView>
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -78,7 +78,7 @@
                 android:layout_marginTop="-8dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginStart="16dp" />
-            <com.google.android.exoplayer2.ui.DefaultTimeBar
+            <androidx.media3.ui.DefaultTimeBar
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/exo_progress"
@@ -117,15 +117,10 @@
                 android:layout_marginEnd="40dp"
                 android:src="@drawable/ic_skip_previous"/>
             <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:id="@+id/exo_play"
-                android:src="@drawable/ic_play"/>
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:id="@+id/exo_pause"
-                android:src="@drawable/ic_pause"/>
+                android:id="@+id/exo_play_pause"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/ExoStyledControls.Button.Center.PlayPause"/>
             <ImageView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
