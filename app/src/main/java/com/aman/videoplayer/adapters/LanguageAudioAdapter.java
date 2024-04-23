@@ -11,9 +11,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.aman.videoplayer.modals.AudioLanguages;
 import com.aman.videoplayer.GetSetLanguage;
 import com.aman.videoplayer.R;
+import com.aman.videoplayer.modals.AudioLanguages;
 
 import java.util.ArrayList;
 
@@ -81,12 +81,9 @@ public class LanguageAudioAdapter extends RecyclerView.Adapter<LanguageAudioAdap
             holder.language_name.setText(language);
             holder.radioButton.setImageResource(R.drawable.ic_radio_button_checked);
         }
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getSetLanguage.myLanguageListener(position);
-                getSetLanguage.changeAudio(position);
-            }
+        holder.itemView.setOnClickListener(view -> {
+            getSetLanguage.myLanguageListener(position);
+            getSetLanguage.changeAudio(position);
         });
     }
 

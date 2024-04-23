@@ -1,6 +1,6 @@
 package com.aman.videoplayer.modals;
 
-public class VideoFiles {
+public class VideoFile {
     private String id;
     private String title;
     private String path;
@@ -15,11 +15,11 @@ public class VideoFiles {
     private String height;
     private String resolution;
 
-    public VideoFiles(String id, String title,
-                      String path, String album, String dateAdded,
-                      String lastModified, String artist,
-                      String duration, String size, String filename,
-                      String width, String height, String resolution) {
+    public VideoFile(String id, String title,
+                     String path, String album, String dateAdded,
+                     String lastModified, String artist,
+                     String duration, String size, String filename,
+                     String width, String height, String resolution) {
         this.id = id;
         this.title = title;
         this.path = path;

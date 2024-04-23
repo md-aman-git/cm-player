@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
 import com.aman.videoplayer.activities.VideosFolderActivity;
 
 import java.util.ArrayList;
@@ -20,9 +20,9 @@ import java.util.ArrayList;
 public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.MyViewHolder> {
     private Context mContext;
     private ArrayList<String> videoFilesFolder;
-    private ArrayList<VideoFiles> videoFiles;
+    private ArrayList<VideoFile> videoFiles;
     View view;
-    public FolderAdapter(Context mContext, ArrayList<VideoFiles> videoFiles,
+    public FolderAdapter(Context mContext, ArrayList<VideoFile> videoFiles,
                          ArrayList<String> videoFilesFolder) {
         this.mContext = mContext;
         this.videoFiles = videoFiles;
@@ -42,13 +42,10 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.MyViewHold
                 .substring(videoFilesFolder
                         .get(position).lastIndexOf("/") + 1));
         holder.total_files.setText(String.valueOf(NumberOfFiles(videoFilesFolder.get(position))));
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, VideosFolderActivity.class);
-                intent.putExtra("folderName", videoFilesFolder.get(position));
-                mContext.startActivity(intent);
-            }
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, VideosFolderActivity.class);
+            intent.putExtra("folderName", videoFilesFolder.get(position));
+            mContext.startActivity(intent);
         });
     }
 
@@ -70,10 +67,10 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.MyViewHold
     int NumberOfFiles(String folder)
     {
         int count = 0;
-        for (VideoFiles videoFiles : videoFiles)
+        for (VideoFile videoFile : videoFiles)
         {
-            if (videoFiles.getPath()
-                    .substring(0, videoFiles.getPath().lastIndexOf("/"))
+            if (videoFile.getPath()
+                    .substring(0, videoFile.getPath().lastIndexOf("/"))
                     .endsWith(folder))
             {
                 count++;

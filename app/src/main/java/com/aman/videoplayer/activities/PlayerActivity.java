@@ -46,8 +46,10 @@ import com.aman.videoplayer.GetSetLanguage;
 import com.aman.videoplayer.R;
 import com.aman.videoplayer.adapters.LanguageAudioAdapter;
 import com.aman.videoplayer.modals.AudioLanguages;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
+import com.aman.videoplayer.utils.MediaStoreUtils;
 import com.aman.videoplayer.utils.OrientationManager;
+import com.google.common.base.Strings;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -63,7 +65,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             subtitleBtn, lockedNow, nextBtn, previousBtn, btnResizeMode;
     private ExoPlayer simpleExoPlayer;
     private boolean flag = false;
-    private ArrayList<VideoFiles> myFiles = new ArrayList<>();
+    private ArrayList<VideoFile> myFiles = new ArrayList<>();
     private AudioManager audioManager;
     private int count = 1;
     private int brightness;
@@ -97,13 +99,22 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                 new OrientationManager(this, SensorManager.SENSOR_DELAY_NORMAL, this);
         orientationManager.enable();
         initialize();
-        String sender = getIntent().getStringExtra("sender");
-        if (sender != null && sender.equals("fromFolderFrag")) {
-            myFiles = mFilesOfFolder;
-        } else if (sender != null && sender.equals("fromFileFrag")) {
-            myFiles = mFiles;
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_VIEW.equals(action) && type != null) {
+            contentFetchFromExternalApp(type, intent);
         }
-        position = getIntent().getIntExtra("position", 0);
+        else {
+            String sender = intent.getStringExtra("sender");
+            if (sender != null && sender.equals("fromFolderFrag")) {
+                myFiles = mFilesOfFolder;
+            } else if (sender != null && sender.equals("fromFileFrag")) {
+                myFiles = mFiles;
+            }
+            position = intent.getIntExtra("position", 0);
+        }
         createExoPlayer(position);
         languageAudioAdapter =
                 new LanguageAudioAdapter(PlayerActivity.this,
@@ -247,6 +258,55 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                 "This Feature In Next Update", Toast.LENGTH_SHORT).show());
     }
 
+    private void contentFetchFromExternalApp(String type, Intent intent) {
+        if (type.startsWith("video/")) {
+            Uri uriContent = intent.getData();
+            Cursor cursor = null;
+            if(uriContent != null) {
+                cursor = this.getContentResolver().query(uriContent,
+                        null, null, null, null);
+            }
+
+            String contentDisplayName = null, contentSize = null;
+            if(cursor != null) {
+                cursor.moveToFirst();
+                int indexContentDisplayName = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+                if(indexContentDisplayName > -1) {
+                    contentDisplayName = cursor.getString(indexContentDisplayName);
+                }
+                int indexContentSize = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
+                if(indexContentSize > -1) {
+                    contentSize = cursor.getString(indexContentSize);
+                }
+
+                cursor.close();
+            }
+            if(contentDisplayName != null) {
+                StringBuilder selectionBuilder = new StringBuilder(MediaStore.Video.Media.DATA + " like?");
+                if(!Strings.isNullOrEmpty(contentSize)) {
+                    selectionBuilder.append(" and " + MediaStore.Video.Media.SIZE + " = ?");
+                }
+                String selection = selectionBuilder.toString();
+                String[] selectionArgs = new String[]{"%" + contentDisplayName + "%", contentSize};
+                myFiles = MediaStoreUtils.getVideoFiles(this, selection, selectionArgs);
+                if(!myFiles.isEmpty()) {
+                    String selectionFolder = MediaStore.Video.Media.DATA + " like?";
+                    String contentPath = myFiles.get(0).getPath();
+                    String contentFolderPath = contentPath.substring(0, contentPath.lastIndexOf('/'));
+                    String contentFolder = contentFolderPath.substring(contentFolderPath.lastIndexOf('/'));
+                    String[] selectionArgsFolder = new String[]{"%" + contentFolder + "%"};
+                    myFiles = MediaStoreUtils.getVideoFiles(this, selectionFolder, selectionArgsFolder);
+                    for(int i = 0; i < myFiles.size(); i++) {
+                        if(myFiles.get(i).getPath().equals(contentPath)) {
+                            position = i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     @OptIn(markerClass = UnstableApi.class)
     private void createExoPlayer(int position) {
         //openAppMethodWork();
@@ -255,7 +315,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             filePlaying.setText(myFiles.get(position).getFilename());
         }
         String path = myFiles.get(position).getPath();
-        Log.e("Path", path + "");
+        Log.e("Path", path);
         Uri uri = Uri.parse(Uri.encode(path));
         MediaItem mediaItem = new MediaItem.Builder().setUri(uri).build();
         simpleExoPlayer = new ExoPlayer.Builder(this)
@@ -978,62 +1038,6 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         } else {
             setTheme(R.style.LightTheme);
         }
-    }
-
-    private void openAppMethodWork() {
-        Uri uri = getIntent().getData();
-        String id = null;
-        //myFiles = getAllAudioFromDevice(this, id);
-    }
-
-    public ArrayList<VideoFiles>
-    getAllAudioFromDevice(final Context context, String pathFinder) {
-
-        final ArrayList<VideoFiles> tempAudioList = new ArrayList<>();
-        Uri uri = android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {
-                MediaStore.Video.Media._ID,
-                MediaStore.Video.Media.ARTIST,
-                MediaStore.Video.Media.TITLE,
-                MediaStore.Video.Media.DATA,
-                MediaStore.Video.Media.DISPLAY_NAME,
-                MediaStore.Video.Media.DURATION,
-                MediaStore.Video.Media.ALBUM,
-                MediaStore.Video.Media.SIZE,
-                MediaStore.Video.Media.DATE_ADDED,
-                MediaStore.Video.Media.DATE_MODIFIED,
-                MediaStore.Video.Media.WIDTH,
-                MediaStore.Video.Media.HEIGHT,
-                MediaStore.Video.Media.RESOLUTION
-        };
-        String selection = android.provider.MediaStore.Video.Media.DATA + " like?";
-        String[] selectionArgs = new String[]{"%" + pathFinder + "%"};
-        Log.e("Uri In Video", uri + "");
-        Cursor c = context.getContentResolver().query(uri, projection,
-                selection, selectionArgs, null);
-        if (c != null) {
-            while (c.moveToNext()) {
-                String id = c.getString(0);
-                String artist = c.getString(1);
-                String title = c.getString(2);
-                String path = c.getString(3);
-                String file_name = c.getString(4);
-                String duration = c.getString(5);
-                String album = c.getString(6);
-                String size = c.getString(7);
-                String date_added = c.getString(8);
-                String date_modified = c.getString(9);
-                String width = c.getString(10);
-                String height = c.getString(11);
-                String resolution = c.getString(12);
-                VideoFiles videoFiles = new VideoFiles(id, title, path,
-                        album, date_added, date_modified,
-                        artist, duration, size, file_name, width, height, resolution);
-                tempAudioList.add(videoFiles);
-            }
-            c.close();
-        }
-        return tempAudioList;
     }
 
     @Override

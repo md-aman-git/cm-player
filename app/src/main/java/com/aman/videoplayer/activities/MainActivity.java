@@ -18,7 +18,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
 import com.aman.videoplayer.fragments.FilesFragment;
 import com.aman.videoplayer.fragments.FolderFragment;
 import com.aman.videoplayer.fragments.ShareMainFragment;
@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity
         implements BottomNavigationView.OnNavigationItemSelectedListener {
 
     private static final int REQUEST_PERMISSION = 23;
-    public static ArrayList<VideoFiles> videoFiles = new ArrayList<>();
+    public static ArrayList<VideoFile> videoFiles = new ArrayList<>();
     public static ArrayList<String> foldersOfVideos = new ArrayList<>();
     BottomNavigationView navigationView;
 
@@ -86,12 +86,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public ArrayList<VideoFiles> getAllAudioFromDevice(final Context context) {
+    public ArrayList<VideoFile> getAllAudioFromDevice(final Context context) {
 
         String MY_PREFS_NAME = "SortOrder";
         SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
         String order = prefs.getString("sorting", "sortByName");
-        final ArrayList<VideoFiles> tempAudioList = new ArrayList<>();
+        final ArrayList<VideoFile> tempAudioList = new ArrayList<>();
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         String sortOrder = null;
         assert order != null;
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity
                 String width = c.getString(10);
                 String height = c.getString(11);
                 String resolution = c.getString(12);
-                VideoFiles videoFiles = new VideoFiles(id, title, path,
+                VideoFile videoFile = new VideoFile(id, title, path,
                         album, date_added, date_modified,
                         artist, duration, size, file_name, width, height, resolution);
                 int slashFirstIndex = path.lastIndexOf("/");
@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity
                 Log.e("folder", folder + "");
                 if (!foldersOfVideos.contains(subStr))
                     foldersOfVideos.add(subStr);
-                tempAudioList.add(videoFiles);
+                tempAudioList.add(videoFile);
             }
             c.close();
         }

@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
 import com.aman.videoplayer.adapters.VideoFolderAdapter;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class VideosFolderActivity extends AppCompatActivity {
 
     String folder;
-    ArrayList<VideoFiles> videoFiles = new ArrayList<>();
+    ArrayList<VideoFile> videoFiles = new ArrayList<>();
     RecyclerView recyclerView;
     VideoFolderAdapter videoFolderAdapter;
     @Override
@@ -46,12 +46,12 @@ public class VideosFolderActivity extends AppCompatActivity {
         }
     }
 
-    public ArrayList<VideoFiles> getAllVideos(final Context context, String folder) {
+    public ArrayList<VideoFile> getAllVideos(final Context context, String folder) {
 
         String MY_PREFS_NAME = "SortOrder";
         SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
         String order = prefs.getString("sorting", "sortByName");
-        final ArrayList<VideoFiles> tempAudioList = new ArrayList<>();
+        final ArrayList<VideoFile> tempAudioList = new ArrayList<>();
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         String sortOrder = null;
         switch (order) {
@@ -102,10 +102,10 @@ public class VideosFolderActivity extends AppCompatActivity {
                 String resolution = c.getString(12);
                 if (folder != null &&
                         album != null && folder.endsWith(album)) {
-                    VideoFiles videoFiles = new VideoFiles(id, title, path,
+                    VideoFile videoFile = new VideoFile(id, title, path,
                             album, date_added, date_modified,
                             artist, duration, size, file_name, width, height, resolution);
-                    tempAudioList.add(videoFiles);
+                    tempAudioList.add(videoFile);
                 }
             }
             c.close();

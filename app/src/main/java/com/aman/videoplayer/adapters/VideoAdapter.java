@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.aman.videoplayer.activities.PlayerActivity;
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
@@ -24,9 +24,9 @@ import java.util.ArrayList;
 public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.MyViewHolder> {
 
     private Context mContext;
-    public static ArrayList<VideoFiles> mFiles;
+    public static ArrayList<VideoFile> mFiles;
 
-    public VideoAdapter(Context mContext, ArrayList<VideoFiles> mFiles) {
+    public VideoAdapter(Context mContext, ArrayList<VideoFile> mFiles) {
         this.mContext = mContext;
         this.mFiles = mFiles;
     }
@@ -54,14 +54,11 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.MyViewHolder
                     .load(Uri.fromFile(new File(mFiles.get(position).getPath())))
                     .placeholder(R.drawable.black_transparent)
                     .into(holder.img_icon);
-        holder.music_item.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, PlayerActivity.class);
-                intent.putExtra("position", position);
-                intent.putExtra("sender", "fromFileFrag");
-                mContext.startActivity(intent);
-            }
+        holder.music_item.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, PlayerActivity.class);
+            intent.putExtra("position", position);
+            intent.putExtra("sender", "fromFileFrag");
+            mContext.startActivity(intent);
         });
     }
 
@@ -85,7 +82,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.MyViewHolder
         }
     }
 
-    public void updateList(ArrayList<VideoFiles> videoFiles)
+    public void updateList(ArrayList<VideoFile> videoFiles)
     {
         mFiles = new ArrayList<>();
         mFiles.addAll(videoFiles);

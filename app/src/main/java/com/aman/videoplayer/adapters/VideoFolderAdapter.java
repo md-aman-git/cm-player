@@ -1,28 +1,22 @@
 package com.aman.videoplayer.adapters;
 
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aman.videoplayer.activities.PlayerActivity;
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
 import com.bumptech.glide.Glide;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,9 +24,9 @@ import java.util.ArrayList;
 public class VideoFolderAdapter extends RecyclerView.Adapter<VideoFolderAdapter.MyViewHolder> {
 
     private Context mContext;
-    public static ArrayList<VideoFiles> mFilesOfFolder;
+    public static ArrayList<VideoFile> mFilesOfFolder;
 
-    public VideoFolderAdapter(Context mContext, ArrayList<VideoFiles> mFilesOfFolder) {
+    public VideoFolderAdapter(Context mContext, ArrayList<VideoFile> mFilesOfFolder) {
         this.mContext = mContext;
         this.mFilesOfFolder = mFilesOfFolder;
     }
@@ -59,15 +53,12 @@ public class VideoFolderAdapter extends RecyclerView.Adapter<VideoFolderAdapter.
                 .load(Uri.fromFile(new File(mFilesOfFolder.get(position).getPath())))
                 .into(holder.img_icon);
 
-        holder.music_item.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, PlayerActivity.class);
-                //  now sending position of item to retrieve the path of that file to open in the new activity..
-                intent.putExtra("position", position);
-                intent.putExtra("sender", "fromFolderFrag");
-                mContext.startActivity(intent);
-            }
+        holder.music_item.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, PlayerActivity.class);
+            //  now sending position of item to retrieve the path of that file to open in the new activity..
+            intent.putExtra("position", position);
+            intent.putExtra("sender", "fromFolderFrag");
+            mContext.startActivity(intent);
         });
     }
 

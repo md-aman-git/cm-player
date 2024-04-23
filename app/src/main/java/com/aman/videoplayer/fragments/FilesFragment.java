@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.aman.videoplayer.R;
-import com.aman.videoplayer.modals.VideoFiles;
+import com.aman.videoplayer.modals.VideoFile;
 import com.aman.videoplayer.adapters.VideoAdapter;
 
 import java.util.ArrayList;
@@ -69,14 +69,15 @@ public class FilesFragment extends Fragment implements SearchView.OnQueryTextLis
     @Override
     public boolean onQueryTextChange(String newText) {
         String userInput = newText.toLowerCase();
-        ArrayList<VideoFiles> myFiles = new ArrayList<>();
-        for (VideoFiles song : videoFiles) {
+        ArrayList<VideoFile> myFiles = new ArrayList<>();
+        for (VideoFile song : videoFiles) {
             if (song.getTitle().toLowerCase().contains(userInput)) {
                 myFiles.add(song);
             }
         }
-        if (videoAdapter != null)
-        videoAdapter.updateList(myFiles);
+        if (videoAdapter != null) {
+            videoAdapter.updateList(myFiles);
+        }
         return true;
     }
 
