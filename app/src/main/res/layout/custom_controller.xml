@@ -60,6 +60,107 @@
             android:layout_toStartOf="@+id/audio_subtitle"
             android:src="@drawable/ic_screen_rotation"/>
     </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/otherControllerLayoutTop"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/topLayout"
+        android:layout_alignParentStart="true"
+        android:layout_margin="5dp">
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:cardBackgroundColor="#50000000"
+            app:cardCornerRadius="50dp"
+            android:layout_centerInParent="true"
+            android:id="@+id/current_playback_speed_controller">
+
+            <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/current_playback_speed_controller_value"
+                android:gravity="center"
+                android:background="#80000000"
+                android:layout_gravity="center"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:textSize="11sp"
+                android:text="1.00X"/>
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/otherControllerLayoutBottom"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        >
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:cardBackgroundColor="#99000000"
+            app:cardCornerRadius="20dp"
+            android:id="@+id/speedController">
+            <androidx.cardview.widget.CardView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:cardBackgroundColor="#30ffffff"
+                app:cardCornerRadius="50dp"
+                android:layout_gravity="center_vertical|start"
+                android:layout_marginStart="20dp"
+                android:id="@+id/decrease_playback_speed">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/decrease_playback_speed_text"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textColor="#ffffff"
+                    android:textStyle="bold"
+                    android:textSize="25sp"
+                    android:text="-"/>
+            </androidx.cardview.widget.CardView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/current_playback_speed"
+                android:background="#50000000"
+                android:padding="10dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_margin="2dp"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:text="1.00X"/>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                app:cardBackgroundColor="#30ffffff"
+                app:cardCornerRadius="50dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="20dp"
+                android:id="@+id/increase_playback_speed">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/increase_playback_speed_text"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textColor="#ffffff"
+                    android:textStyle="bold"
+                    android:textSize="25sp"
+                    android:text="+"/>
+            </androidx.cardview.widget.CardView>
+
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
     <RelativeLayout
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"

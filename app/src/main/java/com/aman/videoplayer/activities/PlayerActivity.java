@@ -32,8 +32,10 @@ import android.widget.Toast;
 
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
@@ -53,6 +55,8 @@ import com.google.common.base.Strings;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class PlayerActivity extends AppCompatActivity implements OrientationManager.OrientationListener {
@@ -74,9 +78,12 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
     private WindowManager.LayoutParams layoutpars = null;
     private int maxVol = 15, screen, height, width, SEEK = 1;
     private boolean upDown = false, leftRight = false, once = true;
-    private TextView seekDuration, filePlaying, brightnessLevel, audioLevel;
+    private TextView seekDuration, filePlaying, brightnessLevel,
+            audioLevel, current_playback_speed, current_playback_speed_controller_value;
+
+    private CardView current_playback_speed_controller, decrease_playback_speed, increase_playback_speed;
     private boolean orientationLandScape = false, screenLocked = false;
-    private RelativeLayout customController, topLayout, bottomLayout;
+    private RelativeLayout customController, topLayout, bottomLayout, otherControllerLayoutBottom, otherControllerLayoutTop;
     private CustomDialogClass dialogClass;
     private Intent intent;
     private DefaultTrackSelector trackSelector;
@@ -85,6 +92,10 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
     private GetSetLanguage getSetLanguage;
     private LanguageAudioAdapter languageAudioAdapter;
     private int MY_POSITION = 0;
+    private float currentPlaybackSpeed = 1.00f;
+    private final BigDecimal PLAYBACK_SPEED_FACTOR = new BigDecimal("0.05");
+    private BigDecimal currentSpeedBigDecimal = new BigDecimal("1.00");
+    private String PLAYBACK_SPEED_SYMBOL = "X";
 
     @OptIn(markerClass = UnstableApi.class)
     @Override
@@ -226,6 +237,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             screenLocked = true;
             topLayout.setVisibility(View.GONE);
             bottomLayout.setVisibility(View.GONE);
+            otherControllerLayoutTop.setVisibility(View.GONE);
             lockedNow.setVisibility(View.VISIBLE);
             playerView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
@@ -250,12 +262,65 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
             lockedNow.setVisibility(View.GONE);
             topLayout.setVisibility(View.VISIBLE);
             bottomLayout.setVisibility(View.VISIBLE);
+            otherControllerLayoutTop.setVisibility(View.VISIBLE);
             if (!playerView.isControllerFullyVisible())
                 playerView.showController();
             gesturePlayerView();
         });
         subtitleBtn.setOnClickListener(view -> Toast.makeText(this,
                 "This Feature In Next Update", Toast.LENGTH_SHORT).show());
+        current_playback_speed_controller.setOnClickListener(view -> {
+            topLayout.setVisibility(View.GONE);
+            bottomLayout.setVisibility(View.GONE);
+            otherControllerLayoutTop.setVisibility(View.GONE);
+            otherControllerLayoutBottom.setVisibility(View.VISIBLE);
+            playerView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        if (otherControllerLayoutBottom.getVisibility() == View.VISIBLE) {
+                            ViewGroup.MarginLayoutParams params =
+                                    (ViewGroup.MarginLayoutParams)
+                                            customController.getLayoutParams();
+                            params.topMargin = 0;
+                            otherControllerLayoutBottom.setVisibility(View.GONE);
+                            otherControllerLayoutTop.setVisibility(View.VISIBLE);
+                            topLayout.setVisibility(View.VISIBLE);
+                            bottomLayout.setVisibility(View.VISIBLE);
+                            gesturePlayerView();
+                        }
+                        if(playerView.isControllerFullyVisible()) {
+                            playerView.hideController();
+                        }
+                        else {
+                            playerView.showController();
+                        }
+                    }
+                    return true;
+                }
+            });
+            FullScreenCall();
+        });
+        increase_playback_speed.setOnClickListener(view -> {
+            setPlaybackSpeed(view.getId());
+        });
+        decrease_playback_speed.setOnClickListener(view -> {
+            setPlaybackSpeed(view.getId());
+        });
+    }
+    private void setPlaybackSpeed(int id) {
+        if(id == increase_playback_speed.getId()) {
+            currentSpeedBigDecimal = currentSpeedBigDecimal.add(PLAYBACK_SPEED_FACTOR);
+        }
+        else {
+            currentSpeedBigDecimal = currentSpeedBigDecimal.subtract(PLAYBACK_SPEED_FACTOR);
+        }
+        currentPlaybackSpeed = currentSpeedBigDecimal.floatValue();
+        simpleExoPlayer.setPlaybackParameters(simpleExoPlayer.getPlaybackParameters()
+                .withSpeed(currentPlaybackSpeed));
+        String currentPlaybackSpeedString = currentSpeedBigDecimal.toString() + PLAYBACK_SPEED_SYMBOL;
+        current_playback_speed.setText(currentPlaybackSpeedString);
+        current_playback_speed_controller_value.setText(currentPlaybackSpeedString);
     }
 
     private void contentFetchFromExternalApp(String type, Intent intent) {
@@ -782,6 +847,8 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         lockedNow = findViewById(R.id.locker);
         topLayout = findViewById(R.id.topLayout);
         bottomLayout = findViewById(R.id.bottomLayout);
+        otherControllerLayoutBottom = findViewById(R.id.otherControllerLayoutBottom);
+        otherControllerLayoutTop = findViewById(R.id.otherControllerLayoutTop);
         subtitleBtn = findViewById(R.id.audio_subtitle);
         backArrow = findViewById(R.id.bt_back_arrow);
         brightnessLevel = findViewById(R.id.brightText);
@@ -791,6 +858,11 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         nextBtn = findViewById(R.id.next_btn);
         previousBtn = findViewById(R.id.previous_btn);
         btnResizeMode = findViewById(R.id.btn_resize_mode);
+        current_playback_speed_controller_value = findViewById(R.id.current_playback_speed_controller_value);
+        current_playback_speed = findViewById(R.id.current_playback_speed);
+        current_playback_speed_controller = findViewById(R.id.current_playback_speed_controller);
+        decrease_playback_speed = findViewById(R.id.decrease_playback_speed);
+        increase_playback_speed = findViewById(R.id.increase_playback_speed);
         customProgressVolume.setMax(maxVol);
         customProgressBright.setMax(255);
         DisplayMetrics displayMetrics = new DisplayMetrics();
