@@ -92,6 +92,34 @@
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
                 android:visibility="gone"/>
+            <androidx.cardview.widget.CardView
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                app:cardBackgroundColor="#80000000"
+                app:cardCornerRadius="20dp"
+                android:visibility="gone"
+                android:id="@+id/double_tap_pause_card">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:id="@+id/double_tap_pause"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_pause"/>
+            </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                app:cardBackgroundColor="#80000000"
+                app:cardCornerRadius="20dp"
+                android:visibility="gone"
+                android:id="@+id/double_tap_play_card">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:id="@+id/double_tap_play"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_play"/>
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
 
     <TextView
@@ -106,5 +134,40 @@
         android:background="@drawable/black_transparent"
         android:padding="10dp"
         android:visibility="gone" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="20dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            app:cardBackgroundColor="#80000000"
+            app:cardCornerRadius="20dp"
+            android:visibility="gone"
+            android:id="@+id/fast_backward_card">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:id="@+id/fast_backward"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_skip_previous"/>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            app:cardBackgroundColor="#80000000"
+            app:cardCornerRadius="20dp"
+            android:visibility="gone"
+            android:id="@+id/fast_forward_card">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:id="@+id/fast_forward"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_skip_next"/>
+        </androidx.cardview.widget.CardView>
     </RelativeLayout>
 </RelativeLayout>

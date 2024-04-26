@@ -19,6 +19,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,12 +31,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
-import androidx.media3.common.PlaybackParameters;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
@@ -52,11 +54,9 @@ import com.aman.videoplayer.modals.VideoFile;
 import com.aman.videoplayer.utils.MediaStoreUtils;
 import com.aman.videoplayer.utils.OrientationManager;
 import com.google.common.base.Strings;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class PlayerActivity extends AppCompatActivity implements OrientationManager.OrientationListener {
@@ -81,8 +81,9 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
     private TextView seekDuration, filePlaying, brightnessLevel,
             audioLevel, current_playback_speed, current_playback_speed_controller_value;
 
-    private CardView current_playback_speed_controller, decrease_playback_speed, increase_playback_speed;
-    private boolean orientationLandScape = false, screenLocked = false;
+    private CardView current_playback_speed_controller, decrease_playback_speed, increase_playback_speed,
+            fast_backward_card, double_tap_pause_card, double_tap_play_card, fast_forward_card;
+    private boolean orientationLandScape = false, screenLocked = false, isDoubleTap = false;
     private RelativeLayout customController, topLayout, bottomLayout, otherControllerLayoutBottom, otherControllerLayoutTop;
     private CustomDialogClass dialogClass;
     private Intent intent;
@@ -95,7 +96,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
     private float currentPlaybackSpeed = 1.00f;
     private final BigDecimal PLAYBACK_SPEED_FACTOR = new BigDecimal("0.05");
     private BigDecimal currentSpeedBigDecimal = new BigDecimal("1.00");
-    private String PLAYBACK_SPEED_SYMBOL = "X";
+    long positionInitial = 0, positionFinal = 0;
 
     @OptIn(markerClass = UnstableApi.class)
     @Override
@@ -318,6 +319,7 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         currentPlaybackSpeed = currentSpeedBigDecimal.floatValue();
         simpleExoPlayer.setPlaybackParameters(simpleExoPlayer.getPlaybackParameters()
                 .withSpeed(currentPlaybackSpeed));
+        String PLAYBACK_SPEED_SYMBOL = "X";
         String currentPlaybackSpeedString = currentSpeedBigDecimal.toString() + PLAYBACK_SPEED_SYMBOL;
         current_playback_speed.setText(currentPlaybackSpeedString);
         current_playback_speed_controller_value.setText(currentPlaybackSpeedString);
@@ -431,203 +433,10 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
 
     @OptIn(markerClass = UnstableApi.class)
     private void gesturePlayerView() {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSystemWritePermission()) {
-                handelSystemSettings();
-                if (!screenLocked) {
-                    playerView.setOnTouchListener(new View.OnTouchListener() {
-                        float y1 = 0, x1 = 0;
-                        long positionInitial = 0, positionFinal = 0;
-
-                        @Override
-                        public boolean onTouch(View v, MotionEvent event) {
-                            float y = event.getY();
-                            float x = event.getX();
-                            float y2;
-                            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                                y1 = y;
-                                x1 = x;
-                                positionInitial = simpleExoPlayer.getCurrentPosition();
-                            }
-                            if (event.getAction() == MotionEvent.ACTION_UP) {
-                                if (count < 2) {
-                                    if (playerView.isControllerFullyVisible()) {
-                                        playerView.hideController();
-                                        FullScreenCall();
-                                        ViewGroup.MarginLayoutParams params =
-                                                (ViewGroup.MarginLayoutParams)
-                                                        customController.getLayoutParams();
-                                        ViewGroup.MarginLayoutParams paramsBright =
-                                                (ViewGroup.MarginLayoutParams)
-                                                        customProgressBright.getLayoutParams();
-                                        params.bottomMargin = 0;
-                                        params.topMargin = 0;
-                                        paramsBright.rightMargin = 40;
-                                    } else {
-                                        playerView.showController();
-                                        showNavButton();
-                                        ViewGroup.MarginLayoutParams params =
-                                                (ViewGroup.MarginLayoutParams)
-                                                        customController.getLayoutParams();
-                                        ViewGroup.MarginLayoutParams paramsBright =
-                                                (ViewGroup.MarginLayoutParams)
-                                                        customProgressBright.getLayoutParams();
-                                        if (!orientationLandScape) {
-                                            params.bottomMargin = 90;
-                                            params.topMargin = 50;
-                                            params.rightMargin = 0;
-                                            paramsBright.rightMargin = 40;
-                                        } else {
-                                            params.bottomMargin = 0;
-                                            params.topMargin = 50;
-                                            params.rightMargin = 90;
-                                            paramsBright.rightMargin = 140;
-                                        }
-                                    }
-                                }
-                                count = 1;
-                                SEEK = 1;
-                                customProgressVolume.setVisibility(View.GONE);
-                                customProgressBright.setVisibility(View.GONE);
-                                audioImageUpDown.setVisibility(View.GONE);
-                                brightnessImageUpDown.setVisibility(View.GONE);
-                                audioLevel.setVisibility(View.GONE);
-                                brightnessLevel.setVisibility(View.GONE);
-                                seekDuration.setVisibility(View.GONE);
-                                upDown = false;
-                                leftRight = false;
-                                once = true;
-                                positionInitial = 0;
-                                positionFinal = 0;
-                            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                                y2 = y;
-                                if (10 * Math.abs((y1 - y)) > 10 * Math.abs(x - x1)) {
-                                    if (once) {
-                                        upDown = true;
-                                        leftRight = false;
-                                        once = false;
-                                    }
-                                } else if (10 * Math.abs((y1 - y)) < 10 * Math.abs(x - x1)) {
-                                    if (once) {
-                                        upDown = false;
-                                        leftRight = true;
-                                        once = false;
-                                    }
-                                }
-                                if (!leftRight) {
-                                    if (x1 > screen / 2.0) {
-                                        if ((y2 - y1) > 0) {
-                                            //down
-                                            if ((y2 - y1) > 20 * count) {
-                                                audioLevel.setVisibility(View.VISIBLE);
-                                                audioImageUpDown.setVisibility(View.VISIBLE);
-                                                customProgressVolume.setVisibility(View.VISIBLE);
-                                                count++;
-                                                int volume_level = audioManager
-                                                        .getStreamVolume(AudioManager.STREAM_MUSIC);
-                                                customProgressVolume
-                                                        .setProgress(volume_level);
-                                                audioManager.adjustVolume(AudioManager.ADJUST_LOWER,
-                                                        AudioManager.FLAG_PLAY_SOUND);
-                                                audioLevel
-                                                        .setText(String.valueOf(volume_level));
-                                            }
-                                        } else if ((y2 - y1) < 0) {
-                                            //up
-                                            if ((y1 - y2) > 20 * count) {
-                                                audioLevel.setVisibility(View.VISIBLE);
-                                                audioImageUpDown.setVisibility(View.VISIBLE);
-                                                customProgressVolume.setVisibility(View.VISIBLE);
-                                                count++;
-                                                int volume_level = audioManager
-                                                        .getStreamVolume(AudioManager.STREAM_MUSIC);
-                                                customProgressVolume.setProgress(volume_level);
-                                                audioManager.adjustVolume(AudioManager.ADJUST_RAISE,
-                                                        AudioManager.FLAG_PLAY_SOUND);
-                                                audioLevel
-                                                        .setText(String.valueOf(volume_level));
-                                            }
-                                        }
-                                    } else {
-                                        if ((y2 - y1) > 0) {
-                                            //down
-                                            if ((y2 - y1) > 20 * count) {
-                                                brightnessLevel.setVisibility(View.VISIBLE);
-                                                brightnessImageUpDown.setVisibility(View.VISIBLE);
-                                                customProgressBright.setVisibility(View.VISIBLE);
-                                                count++;
-                                                if (brightness < 256 && brightness > 17) {
-                                                    //Set the brightness of this window
-                                                    brightness -= 17;
-                                                    layoutpars.screenBrightness = brightness / (float) 255;
-                                                    //Apply attribute changes to this window
-                                                }
-                                                if (brightness <= 17) {
-                                                    brightness = 0;
-                                                    layoutpars.screenBrightness = brightness / (float) 255;
-                                                }
-                                                brightnessLevel
-                                                        .setText(String.valueOf(brightness / 17));
-                                                customProgressBright.setProgress(brightness);
-                                                window.setAttributes(layoutpars);
-                                            }
-                                        } else if ((y2 - y1) < 0) {
-                                            //up
-                                            if ((y1 - y2) > 20 * count) {
-                                                brightnessLevel.setVisibility(View.VISIBLE);
-                                                brightnessImageUpDown.setVisibility(View.VISIBLE);
-                                                customProgressBright.setVisibility(View.VISIBLE);
-                                                count++;
-                                                if (brightness < 256) {
-                                                    if (brightness < 239) {
-                                                        brightness += 17;
-                                                    } else {
-                                                        brightness = 255;
-                                                    }
-                                                    brightnessLevel
-                                                            .setText(String.valueOf(brightness / 17));
-                                                    //Set the brightness of this window
-                                                    layoutpars.screenBrightness = brightness / (float) 255;
-                                                    //Apply attribute changes to this window
-                                                }
-                                                customProgressBright.setProgress(brightness);
-                                                window.setAttributes(layoutpars);
-                                            }
-                                        }
-                                    }
-                                }
-                                if (!upDown) {
-                                    if ((x - x1) > 80 * SEEK) {
-                                        if ((x1 - x) < 0) {
-                                            //right
-                                            SEEK++;
-                                            count = 2;
-                                            if (simpleExoPlayer.getCurrentPosition() < simpleExoPlayer.getDuration())
-                                                simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() + 500 * SEEK);
-                                            positionFinal = simpleExoPlayer.getCurrentPosition() + 500 * SEEK;
-                                            seekDuration.setVisibility(View.VISIBLE);
-                                            seekDuration.setText(formattedTime((positionFinal - positionInitial) / 1000));
-                                        }
-                                    } else if ((x1 - x) > 80 * SEEK) {
-                                        //left
-                                        if ((x1 - x) > 0) {
-                                            //left
-                                            SEEK++;
-                                            count = 2;
-                                            if (simpleExoPlayer.getCurrentPosition() > 0)
-                                                simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() - 500 * SEEK);
-                                            positionFinal = simpleExoPlayer.getCurrentPosition() - 500 * SEEK;
-                                            seekDuration.setVisibility(View.VISIBLE);
-                                            seekDuration.setText(formattedTime((positionFinal - positionInitial) / 1000));
-                                        }
-                                    }
-                                }
-                            }
-                            return true;
-                        }
-
-                    });
-                }
+                handleGestureSwipes();
             } else {
                 openAndroidPermissionsMenu();
                 dialogClass = new CustomDialogClass(this, intent);
@@ -635,202 +444,224 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
                 dialogClass.show();
             }
         } else {
-            handelSystemSettings();
-            if (!screenLocked) {
-                playerView.setOnTouchListener(new View.OnTouchListener() {
-                    float y1 = 0, x1 = 0;
-                    long positionInitial = 0, positionFinal = 0;
-
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        float y = event.getY();
-                        float x = event.getX();
-                        float y2;
-                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                            y1 = y;
-                            x1 = x;
-                            positionInitial = simpleExoPlayer.getCurrentPosition();
-                        }
-                        if (event.getAction() == MotionEvent.ACTION_UP) {
-                            if (count < 2) {
-                                if (playerView.isControllerFullyVisible()) {
-                                    playerView.hideController();
-                                    FullScreenCall();
-                                    ViewGroup.MarginLayoutParams params =
-                                            (ViewGroup.MarginLayoutParams)
-                                                    customController.getLayoutParams();
-                                    ViewGroup.MarginLayoutParams paramsBright =
-                                            (ViewGroup.MarginLayoutParams)
-                                                    customProgressBright.getLayoutParams();
-                                    params.bottomMargin = 0;
-                                    params.topMargin = 0;
-                                    paramsBright.rightMargin = 40;
-                                } else {
-                                    playerView.showController();
-                                    showNavButton();
-                                    ViewGroup.MarginLayoutParams params =
-                                            (ViewGroup.MarginLayoutParams)
-                                                    customController.getLayoutParams();
-                                    ViewGroup.MarginLayoutParams paramsBright =
-                                            (ViewGroup.MarginLayoutParams)
-                                                    customProgressBright.getLayoutParams();
-                                    if (!orientationLandScape) {
-                                        params.bottomMargin = 90;
-                                        params.topMargin = 50;
-                                        params.rightMargin = 0;
-                                        paramsBright.rightMargin = 40;
-                                    } else {
-                                        params.bottomMargin = 0;
-                                        params.topMargin = 50;
-                                        params.rightMargin = 90;
-                                        paramsBright.rightMargin = 140;
-                                    }
-                                }
-                            }
-                            count = 1;
-                            SEEK = 1;
-                            customProgressVolume.setVisibility(View.GONE);
-                            customProgressBright.setVisibility(View.GONE);
-                            audioImageUpDown.setVisibility(View.GONE);
-                            brightnessImageUpDown.setVisibility(View.GONE);
-                            audioLevel.setVisibility(View.GONE);
-                            brightnessLevel.setVisibility(View.GONE);
-                            seekDuration.setVisibility(View.GONE);
-                            upDown = false;
-                            leftRight = false;
-                            once = true;
-                            positionInitial = 0;
-                            positionFinal = 0;
-                        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                            y2 = y;
-                            if (10 * Math.abs((y1 - y)) > 10 * Math.abs(x - x1)) {
-                                if (once) {
-                                    upDown = true;
-                                    leftRight = false;
-                                    once = false;
-                                }
-                            } else if (10 * Math.abs((y1 - y)) < 10 * Math.abs(x - x1)) {
-                                if (once) {
-                                    upDown = false;
-                                    leftRight = true;
-                                    once = false;
-                                }
-                            }
-                            if (!leftRight) {
-                                if (x1 > screen / 2.0) {
-                                    if ((y2 - y1) > 0) {
-                                        //down
-                                        if ((y2 - y1) > 20 * count) {
-                                            audioLevel.setVisibility(View.VISIBLE);
-                                            audioImageUpDown.setVisibility(View.VISIBLE);
-                                            customProgressVolume.setVisibility(View.VISIBLE);
-                                            count++;
-                                            int volume_level = audioManager
-                                                    .getStreamVolume(AudioManager.STREAM_MUSIC);
-                                            customProgressVolume
-                                                    .setProgress(volume_level);
-                                            audioManager.adjustVolume(AudioManager.ADJUST_LOWER,
-                                                    AudioManager.FLAG_PLAY_SOUND);
-                                            audioLevel
-                                                    .setText(String.valueOf(volume_level));
-                                        }
-                                    } else if ((y2 - y1) < 0) {
-                                        //up
-                                        if ((y1 - y2) > 20 * count) {
-                                            audioLevel.setVisibility(View.VISIBLE);
-                                            audioImageUpDown.setVisibility(View.VISIBLE);
-                                            customProgressVolume.setVisibility(View.VISIBLE);
-                                            count++;
-                                            int volume_level = audioManager
-                                                    .getStreamVolume(AudioManager.STREAM_MUSIC);
-                                            customProgressVolume.setProgress(volume_level);
-                                            audioManager.adjustVolume(AudioManager.ADJUST_RAISE,
-                                                    AudioManager.FLAG_PLAY_SOUND);
-                                            audioLevel
-                                                    .setText(String.valueOf(volume_level));
-                                        }
-                                    }
-                                } else {
-                                    if ((y2 - y1) > 0) {
-                                        //down
-                                        if ((y2 - y1) > 20 * count) {
-                                            brightnessLevel.setVisibility(View.VISIBLE);
-                                            brightnessImageUpDown.setVisibility(View.VISIBLE);
-                                            customProgressBright.setVisibility(View.VISIBLE);
-                                            count++;
-                                            if (brightness < 256 && brightness > 17) {
-                                                //Set the brightness of this window
-                                                brightness -= 17;
-                                                layoutpars.screenBrightness = brightness / (float) 255;
-                                                //Apply attribute changes to this window
-                                            }
-                                            if (brightness <= 17) {
-                                                brightness = 0;
-                                                layoutpars.screenBrightness = brightness / (float) 255;
-                                            }
-                                            brightnessLevel
-                                                    .setText(String.valueOf(brightness / 17));
-                                            customProgressBright.setProgress(brightness);
-                                            window.setAttributes(layoutpars);
-                                        }
-                                    } else if ((y2 - y1) < 0) {
-                                        //up
-                                        if ((y1 - y2) > 20 * count) {
-                                            brightnessLevel.setVisibility(View.VISIBLE);
-                                            brightnessImageUpDown.setVisibility(View.VISIBLE);
-                                            customProgressBright.setVisibility(View.VISIBLE);
-                                            count++;
-                                            if (brightness < 256) {
-                                                if (brightness < 239) {
-                                                    brightness += 17;
-                                                } else {
-                                                    brightness = 255;
-                                                }
-                                                brightnessLevel
-                                                        .setText(String.valueOf(brightness / 17));
-                                                //Set the brightness of this window
-                                                layoutpars.screenBrightness = brightness / (float) 255;
-                                                //Apply attribute changes to this window
-                                            }
-                                            customProgressBright.setProgress(brightness);
-                                            window.setAttributes(layoutpars);
-                                        }
-                                    }
-                                }
-                            }
-                            if (!upDown) {
-                                if ((x - x1) > 80 * SEEK) {
-                                    if ((x1 - x) < 0) {
-                                        //right
-                                        SEEK++;
-                                        count = 2;
-                                        if (simpleExoPlayer.getCurrentPosition() < simpleExoPlayer.getDuration())
-                                            simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() + 500 * SEEK);
-                                        positionFinal = simpleExoPlayer.getCurrentPosition() + 500 * SEEK;
-                                        seekDuration.setVisibility(View.VISIBLE);
-                                        seekDuration.setText(formattedTime((positionFinal - positionInitial) / 1000));
-                                    }
-                                } else if ((x1 - x) > 80 * SEEK) {
-                                    //left
-                                    if ((x1 - x) > 0) {
-                                        //left
-                                        SEEK++;
-                                        count = 2;
-                                        if (simpleExoPlayer.getCurrentPosition() > 0)
-                                            simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() - 500 * SEEK);
-                                        positionFinal = simpleExoPlayer.getCurrentPosition() - 500 * SEEK;
-                                        seekDuration.setVisibility(View.VISIBLE);
-                                        seekDuration.setText(formattedTime((positionFinal - positionInitial) / 1000));
-                                    }
-                                }
-                            }
-                        }
-                        return true;
-                    }
-
-                });
-            }
+            handleGestureSwipes();
         }
+    }
+    @OptIn(markerClass = UnstableApi.class)
+    private void handleGestureSwipes() {
+        handelSystemSettings();
+
+        final GestureDetector gestureDetector = new GestureDetector(PlayerActivity.this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(@NonNull MotionEvent e) {
+                float currentX = e.getX();
+                long SEEK_FAST = 10000;//10 sec
+                if (currentX > 2.0 * screen / 3.0) {
+                    //fast forward
+                    if (simpleExoPlayer.getCurrentPosition() + SEEK_FAST < simpleExoPlayer.getDuration()) {
+                        fast_forward_card.setVisibility(View.VISIBLE);
+                        simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() + SEEK_FAST);
+                    }
+                } else if(currentX > screen / 3.0) {
+                    //play-pause
+                    if(simpleExoPlayer.getPlayWhenReady()) {
+                        double_tap_play_card.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        double_tap_pause_card.setVisibility(View.VISIBLE);
+                    }
+                    simpleExoPlayer.setPlayWhenReady(!simpleExoPlayer.getPlayWhenReady());
+                }
+                else {
+                    //fast backward
+                    fast_backward_card.setVisibility(View.VISIBLE);
+                    if (simpleExoPlayer.getCurrentPosition() - SEEK_FAST >= 0) {
+                        simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() - SEEK_FAST);
+                    }
+                }
+                return super.onDoubleTap(e);
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
+                float diffY = e2.getY() - e1.getY();
+                float diffX = e2.getX() - e1.getX();
+                if (Math.abs(distanceX) > Math.abs(distanceY) && !upDown) {
+                    leftRight = true;
+                    if (diffX > 0) {
+                        //right
+                        if(Math.abs(diffX) > 40 * SEEK) {
+                            SEEK++;
+                            if (simpleExoPlayer.getCurrentPosition() < simpleExoPlayer.getDuration())
+                                simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() + 1000);
+                            positionFinal = simpleExoPlayer.getCurrentPosition() + 1000;
+                            seekDuration.setVisibility(View.VISIBLE);
+                            seekDuration.setText(formattedTime((positionFinal - positionInitial) / 1000));
+                        }
+                    } else {
+                        //left
+                        if(Math.abs(diffX) > 40 * SEEK) {
+                            SEEK++;
+                            if (simpleExoPlayer.getCurrentPosition() < simpleExoPlayer.getDuration())
+                                simpleExoPlayer.seekTo(simpleExoPlayer.getCurrentPosition() - 1000);
+                            positionFinal = simpleExoPlayer.getCurrentPosition() - 1000;
+                            seekDuration.setVisibility(View.VISIBLE);
+                            seekDuration.setText(formattedTime((positionFinal - positionInitial) / 1000));
+                        }
+                    }
+                } else if(!leftRight) {
+                    upDown = true;
+                    if (diffY > 0) {
+                        //down
+                        if(screen / 2.0 < e1.getX()) {
+                            //right down
+                            if(Math.abs(diffY) > 20 * count) {
+                                audioLevel.setVisibility(View.VISIBLE);
+                                audioImageUpDown.setVisibility(View.VISIBLE);
+                                customProgressVolume.setVisibility(View.VISIBLE);
+                                count++;
+                                int volume_level = audioManager
+                                        .getStreamVolume(AudioManager.STREAM_MUSIC);
+                                customProgressVolume
+                                        .setProgress(volume_level);
+                                audioManager.adjustVolume(AudioManager.ADJUST_LOWER,
+                                        AudioManager.FLAG_PLAY_SOUND);
+                                audioLevel
+                                        .setText(String.valueOf(volume_level));
+                            }
+                        }
+                        else {
+                            //left down
+                            if (Math.abs(diffY) > 20 * count) {
+                                brightnessLevel.setVisibility(View.VISIBLE);
+                                brightnessImageUpDown.setVisibility(View.VISIBLE);
+                                customProgressBright.setVisibility(View.VISIBLE);
+                                count++;
+                                if (brightness < 256 && brightness > 17) {
+                                    //Set the brightness of this window
+                                    brightness -= 17;
+                                    layoutpars.screenBrightness = brightness / (float) 255;
+                                    //Apply attribute changes to this window
+                                }
+                                if (brightness <= 17) {
+                                    brightness = 0;
+                                    layoutpars.screenBrightness = brightness / (float) 255;
+                                }
+                                brightnessLevel
+                                        .setText(String.valueOf(brightness / 17));
+                                customProgressBright.setProgress(brightness);
+                                window.setAttributes(layoutpars);
+                            }
+                        }
+                    } else {
+                        //up
+                        if(screen / 2.0 < e1.getX()) {
+                            //right up
+                            if (Math.abs(diffY) > 20 * count) {
+                                audioLevel.setVisibility(View.VISIBLE);
+                                audioImageUpDown.setVisibility(View.VISIBLE);
+                                customProgressVolume.setVisibility(View.VISIBLE);
+                                count++;
+                                int volume_level = audioManager
+                                        .getStreamVolume(AudioManager.STREAM_MUSIC);
+                                customProgressVolume.setProgress(volume_level);
+                                audioManager.adjustVolume(AudioManager.ADJUST_RAISE,
+                                        AudioManager.FLAG_PLAY_SOUND);
+                                audioLevel
+                                        .setText(String.valueOf(volume_level));
+                            }
+                        }
+                        else {
+                            //left up
+                            if (Math.abs(diffY) > 20 * count) {
+                                brightnessLevel.setVisibility(View.VISIBLE);
+                                brightnessImageUpDown.setVisibility(View.VISIBLE);
+                                customProgressBright.setVisibility(View.VISIBLE);
+                                count++;
+                                if (brightness < 256) {
+                                    if (brightness < 239) {
+                                        brightness += 17;
+                                    } else {
+                                        brightness = 255;
+                                    }
+                                    brightnessLevel
+                                            .setText(String.valueOf(brightness / 17));
+                                    //Set the brightness of this window
+                                    layoutpars.screenBrightness = brightness / (float) 255;
+                                    //Apply attribute changes to this window
+                                }
+                                customProgressBright.setProgress(brightness);
+                                window.setAttributes(layoutpars);
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            @Override
+            public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+                if (playerView.isControllerFullyVisible()) {
+                    playerView.hideController();
+                    FullScreenCall();
+                    ViewGroup.MarginLayoutParams params =
+                            (ViewGroup.MarginLayoutParams)
+                                    customController.getLayoutParams();
+                    ViewGroup.MarginLayoutParams paramsBright =
+                            (ViewGroup.MarginLayoutParams)
+                                    customProgressBright.getLayoutParams();
+                    params.bottomMargin = 0;
+                    params.topMargin = 0;
+                    paramsBright.rightMargin = 40;
+                } else {
+                    playerView.showController();
+                    showNavButton();
+                    ViewGroup.MarginLayoutParams params =
+                            (ViewGroup.MarginLayoutParams)
+                                    customController.getLayoutParams();
+                    ViewGroup.MarginLayoutParams paramsBright =
+                            (ViewGroup.MarginLayoutParams)
+                                    customProgressBright.getLayoutParams();
+                    if (!orientationLandScape) {
+                        params.bottomMargin = 90;
+                        params.topMargin = 50;
+                        params.rightMargin = 0;
+                        paramsBright.rightMargin = 40;
+                    } else {
+                        params.bottomMargin = 0;
+                        params.topMargin = 50;
+                        params.rightMargin = 90;
+                        paramsBright.rightMargin = 140;
+                    }
+                }
+                return false;
+            }
+        });
+        playerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    count = 1;
+                    SEEK = 1;
+                    positionInitial = 0;
+                    positionFinal = 0;
+                    leftRight = false;
+                    upDown = false;
+                    customProgressVolume.setVisibility(View.GONE);
+                    customProgressBright.setVisibility(View.GONE);
+                    audioImageUpDown.setVisibility(View.GONE);
+                    brightnessImageUpDown.setVisibility(View.GONE);
+                    audioLevel.setVisibility(View.GONE);
+                    brightnessLevel.setVisibility(View.GONE);
+                    seekDuration.setVisibility(View.GONE);
+                    fast_backward_card.setVisibility(View.GONE);
+                    fast_forward_card.setVisibility(View.GONE);
+                    double_tap_pause_card.setVisibility(View.GONE);
+                    double_tap_play_card.setVisibility(View.GONE);
+                }
+                return true;
+            }
+        });
     }
 
     @OptIn(markerClass = UnstableApi.class)
@@ -863,6 +694,10 @@ public class PlayerActivity extends AppCompatActivity implements OrientationMana
         current_playback_speed_controller = findViewById(R.id.current_playback_speed_controller);
         decrease_playback_speed = findViewById(R.id.decrease_playback_speed);
         increase_playback_speed = findViewById(R.id.increase_playback_speed);
+        fast_backward_card = findViewById(R.id.fast_backward_card);
+        double_tap_pause_card = findViewById(R.id.double_tap_pause_card);
+        double_tap_play_card = findViewById(R.id.double_tap_play_card);
+        fast_forward_card = findViewById(R.id.fast_forward_card);
         customProgressVolume.setMax(maxVol);
         customProgressBright.setMax(255);
         DisplayMetrics displayMetrics = new DisplayMetrics();
